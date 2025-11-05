@@ -1,0 +1,7 @@
+<mvc:View controllerName="com.triumph.pistockcount.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <Page id="page" title="{i18n>title}">
+        <Text text="Hello World"></Text>
+    </Page>
+</mvc:View>
