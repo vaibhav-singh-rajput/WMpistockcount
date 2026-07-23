@@ -12,12 +12,12 @@
     "resources": "resources.json",
     "sourceTemplate": {
       "id": "@sap/generator-fiori:basic",
-      "version": "1.19.3",
-      "toolsId": "0f9ed56d-3bf2-4dd5-9ab2-cf3020ee7dad"
+      "version": "1.19.5",
+      "toolsId": "e9c06d33-8e94-4d9f-94d4-a899b11926e1"
     },
     "dataSources": {
       "mainService": {
-        "uri": "/V2/Northwind/Northwind.svc/",
+        "uri": "/V3/OData/OData.svc/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -27,21 +27,18 @@
       }
     },
     "crossNavigation": {
-            "inbounds": {
-                "comtriumphpistockcount-inbound": {
-                    "signature": {
-                        "parameters": {},
-                        "additionalParameters": "allowed"
-                    },
-                    "semanticObject": "pistockcount",
-                    "action": "display",
-                    "title": "{{flpTitle}}",
-                    "subTitle": "{{flpSubtitle}}",
-                    "icon": "sap-icon://accounting-document-verification"
-                }
-            }
+      "inbounds": {
+        "pistockcount-display": {
+          "semanticObject": "pistockcount",
+          "action": "display",
+          "title": "{{pistockcount-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         }
-    
+      }
+    }
   },
   "sap.ui": {
     "technology": "UI5",
@@ -60,7 +57,7 @@
     }
   },
   "sap.ui5": {
-    "flexEnabled": true,
+    "flexEnabled": false,
     "dependencies": {
       "minUI5Version": "1.142.0",
       "libs": {
@@ -83,6 +80,9 @@
         "dataSource": "mainService",
         "preload": true,
         "settings": {}
+      },
+      "appModel": {
+        "type": "sap.ui.model.json.JSONModel"
       }
     },
     "resources": {
@@ -106,10 +106,24 @@
       },
       "routes": [
         {
-          "name": "RouteMain",
-          "pattern": ":?query:",
+          "name": "Main",
+          "pattern": "",
           "target": [
             "TargetMain"
+          ]
+        },
+        {
+          "name": "DocumentDetail",
+          "pattern": "documentDetail/{docID}",
+          "target": [
+            "DocumentDetail"
+          ]
+        },
+        {
+          "name": "NewEntry",
+          "pattern": "newEntry",
+          "target": [
+            "NewEntry"
           ]
         }
       ],
@@ -117,6 +131,14 @@
         "TargetMain": {
           "id": "Main",
           "name": "Main"
+        },
+        "DocumentDetail": {
+          "id": "DocumentDetail",
+          "name": "DocumentDetail"
+        },
+        "NewEntry": {
+          "id": "NewEntry",
+          "name": "NewEntry"
         }
       }
     },

@@ -1,1 +1,30 @@
 /* Enter your custom styles here */
+
+/* ========= Global for all Pages ================*/
+/* Highlight all column headers for this table */
+.highlightColumnHeaders .sapMListTblHeaderCell {
+    /* background-color: #EFF1F2 */
+    /* background-color: #9fdfff */
+    /* background-color: #f5faff */
+    /* background-color: #baddff */
+    background-color: #ebf5fe
+}
+
+
+/* ========= DocumentDetails Page ================*/
+
+.tableStickyFooter {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background-color: #ffffff;
+    border-top: 1px solid #d9d9d9;
+    padding: 0.5rem;
+}
+
+/* ========= New Entry Page ================*/
+
+.highlightColumn {
+    font-weight: bold !important;
+    color: #000 !important;
+}

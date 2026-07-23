@@ -1,0 +1,128 @@
+<mvc:View controllerName="com.triumph.pistockcount.controller.DocumentDetail"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Page id="page2">
+        <headerContent>
+            <Image src="{imageModel>/path}/images/triumph.png" height="100%" class="sapUiTinyMarginBegin"/>
+            <ToolbarSpacer />
+            <Title text="PI Document - {appModel>/selectedDocument/Ivnum}" />
+            <ToolbarSpacer />
+            <Button icon="sap-icon://sys-help" press="onPressButtonHelp" />
+            <Button id="buttonWelcomeLogoutMain" icon="sap-icon://log" press=".onPressButtonLogout" />
+        </headerContent>
+
+        <content>
+
+            <Table id="idItemTable" inset="false" items="{itemModel>/allItems}" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>Main.NoDataTextDocumentList}" autoPopinMode="true" class="highlightColumnHeaders">
+
+                <headerToolbar>
+                    <OverflowToolbar>
+
+                        <Text text="Counted: {
+                                parts: ['itemModel>/allItems'],
+                                formatter: '.formatter.countedTotal'
+                             }" />
+
+                        <ToolbarSeparator />
+
+                        <Button icon="sap-icon://bar-code" tooltip="Scan Barcode" press=".onScannerIconPress" />
+
+                        <Input id="idInputScanner" width="8rem" change=".onScannerInputChange" />
+
+                        <ToolbarSpacer />
+
+                        <Button text="Add New Item" type="Emphasized" icon="sap-icon://add" press=".onNavToNewEntry"/>
+                        <Button text="Zero Count" press=".onZeroCount"/>
+
+                        <SearchField id="idItemSearch" placeholder="Search..." liveChange=".onSearch" width="10rem"/>
+
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column>
+                        <Text text="Select"/>
+                    </Column>
+                    <Column>
+                        <Text text="Line Item Number"/>
+                    </Column>
+                    <Column>
+                        <Text text="Material Number"/>
+                    </Column>
+                    <Column>
+                        <Text text="Plant"/>
+                    </Column>
+                    <Column>
+                        <Text text="Batch"/>
+                    </Column>
+                    <Column>
+                        <Text text="Storage Type"/>
+                    </Column>
+                    <Column>
+                        <Text text="Storage Bin"/>
+                    </Column>
+                    <Column>
+                        <Text text="Counted Quantity"/>
+                    </Column>
+                    <Column>
+                        <Text text="Unit of Measure"/>
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem>
+                        <cells>
+
+                            <CheckBox selected="{itemModel>Flag}" select="onItemSelect"/>
+
+                            <Text text="{itemModel>IVPOS}" />
+                            <Text text="{itemModel>MATNR}" />
+                            <Text text="{itemModel>WERKS}" />
+                            <Text text="{itemModel>Charg}" />
+                            <Text text="{itemModel>LGTYP}" />
+                            <Text text="{itemModel>LGPLA}" />
+
+                            <Input value="{itemModel>MENGE}" type="Number" change=".onInputCountChange" />
+
+                            <Text text="{itemModel>ALTME}" />
+
+                        </cells>
+                    </ColumnListItem>
+                </items>
+
+            </Table>
+
+            <Bar id="tableitemModelBar" class="tableStickyFooter" design="Header">
+                <contentLeft>
+                    <Button icon="sap-icon://navigation-left-arrow" text="Previous" press=".onPrevPage" type="Transparent" enabled="{= ${itemModel>/currentPage} > 1 }"/>
+                </contentLeft>
+
+                <contentMiddle>
+                    <Text text="{= 'Page ' + ${itemModel>/currentPage} + ' of ' + ${itemModel>/totalPages} }" textAlign="Center"/>
+                </contentMiddle>
+
+                <contentRight>
+                    <Button icon="sap-icon://navigation-right-arrow" text="Next" press=".onNextPage" type="Transparent" iconFirst="false" enabled="{= ${itemModel>/totalPages} > ${itemModel>/currentPage} }"/>
+                </contentRight>
+            </Bar>
+
+        </content>
+
+        <footer>
+            <OverflowToolbar>
+
+                <Button id="buttonMessagePopover" visible="{=!!${message>/}.length}" icon="{ path: '/', formatter: '.buttonIconFormatter' }" type="{ path: '/', formatter: '.buttonTypeFormatter' }" text="{ path: '/', formatter: '.highestSeverityMessages' }" press=".handleMessagePopoverPress" ariaHasPopup="Dialog"/>
+
+                <ToolbarSpacer />
+
+                <Button text="Save as Draft" icon="sap-icon://bookmark-2" press=".onSaveDraft"/>
+                <Button text="Submit to SAP" type="Emphasized" icon="sap-icon://save" press=".onSubmit"/>
+
+            </OverflowToolbar>
+        </footer>
+
+    </Page>
+
+</mvc:View>

@@ -1,7 +1,57 @@
 <mvc:View controllerName="com.triumph.pistockcount.controller.Main"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m">
-    <Page id="page" title="{i18n>title}">
-        <Text text="Hello World"></Text>
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <!-- <Page id="page" title="{i18n>title}">
+    <Text text="{Products/0/ID}"></Text>
+    <Button text="readTest" press="readTest"></Button>
+    <Button text="createTest" press="createTest"></Button>
+    <Button text="updateTest" press="updateTest"></Button>
+    </Page> -->
+    <Page id="page" >
+    <headerContent>
+            <Image src="{imageModel>/path}/images/triumph.png" height="100%" width="auto" class="sapUiTinyMarginBegin" />
+            <ToolbarSpacer />
+            <Title text="Warehouse - {appModel>/selectedWarehouse} (MAROC MODIS SA)" />
+            <ToolbarSpacer />
+            <Button icon="sap-icon://sys-help" press="onPressButtonHelp" />
+            <Button id="buttonWelcomeLogoutMain" icon="sap-icon://log" press=".onPressButtonLogout" />
+        </headerContent>
+        <content>
+            <Table class="highlightColumnHeaders" backgroundDesign="Solid" id="idWarehouseTable" inset="false" growing="true" growingScrollToLoad="true" growingThreshold="20" items="{ path: 'documentModel>/documents' }" sticky="ColumnHeaders,HeaderToolbar" noDataText="{i18n>Main.NoDataTextDocumentList}">
+                <headerToolbar>
+                    <Toolbar>
+                        <Text text="Total : {= ${documentModel>/documents}.length }" />
+                        <ToolbarSpacer />
+                        <SearchField id="idInvDocSearch" placeholder="Search..." liveChange=".onSearch" width="10rem" />
+                    </Toolbar>
+                </headerToolbar>
+                <columns>
+                    <Column>
+                        <Text text="Physical Inventory Document Number"/>
+                    </Column>
+                    <Column>
+                    <HBox alignItems="Center">
+                        <Text text="Inventory Status"/>
+                        <core:Icon src="sap-icon://filter" tooltip="Filter by Status" press=".onFilterInventoryStatus" width="2rem"></core:Icon>
+                        <!-- <Button text="Inventory Status" icon="sap-icon://filter" type="Transparent" tooltip="Filter by Status" press="onStatusFilterPress"/> -->
+                        </HBox>
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem type="Navigation" press=".onWarehouseItemPress">
+                        <cells>
+                            <Text text="{documentModel>Ivnum}" />
+                            <Text 
+                                text="{
+                                    path : 'documentModel>Istat',
+                                    formatter : '.formatter.inventoryStatusFormatter'
+                                }" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
     </Page>
-</mvc:View>
+
+</mvc:View> 

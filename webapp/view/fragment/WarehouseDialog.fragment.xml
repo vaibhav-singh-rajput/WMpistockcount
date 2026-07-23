@@ -1,0 +1,20 @@
+<core:FragmentDefinition xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog id="idWarehouseDialog" title="Enter Warehouse Number" draggable="true" resizable="true">
+        <VBox class="sapUiSmallMargin">
+            <Label text="Warehouse Number" labelFor="idWarehouseInput"/>
+            <Input id="idWarehouseInput" placeholder="Enter warehouse number..." maxLength="3" submit=".onSubmitWarehouse" />
+            <!-- <MaskInput id="idWarehouseInput1" placeholder="Enter warehouse number..." mask="aaa" width="100%">
+                <rules>
+                    <MaskInputRule maskFormatSymbol="a" regex="[A-Za-z0-9]" />
+                </rules>
+            </MaskInput> -->
+        </VBox>
+        <beginButton>
+            <Button text="Back to Launchpad" press=".navigateBackToLaunchpad"/>
+        </beginButton>
+        <endButton>
+            <Button text="Submit" type="Emphasized" press=".onSubmitWarehouse"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

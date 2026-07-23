@@ -1,0 +1,105 @@
+<mvc:View controllerName="com.triumph.pistockcount.controller.NewEntry" displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Page id="page3">
+        <headerContent>
+            <Image src="{imageModel>/path}/images/triumph.png" height="100%" width="auto" class="sapUiTinyMarginBegin" />
+            <ToolbarSpacer />
+            <Title text="PI Document - {appModel>/selectedDocument/Ivnum}" />
+            <ToolbarSpacer />
+            <Button icon="sap-icon://sys-help" press="onPressButtonHelp" />
+            <Button id="buttonWelcomeLogoutMain" icon="sap-icon://log" press=".onPressButtonLogout" />
+        </headerContent>
+
+        <content>
+            <Table id="invTable" class="highlightColumnHeaders" items="{entryModel>/Items}" autoPopinMode="true" sticky="ColumnHeaders,HeaderToolbar">
+
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <Button text="Add Row" icon="sap-icon://add" type="Emphasized" press=".onAddRow" class="sapUiSmallMarginBegin"/>
+                        <ToolbarSeparator/>
+                        <Button icon="sap-icon://bar-code" type="Transparent" tooltip="Scan Barcode" press=".onScannerIconPress" />
+                        <Input id="idInputScanner" placeholder="Scan..." change="validateScannedBatch" width="8rem" />
+                        <ToolbarSpacer />
+                    </OverflowToolbar>
+                </headerToolbar>
+
+                <columns>
+                    <Column importance="High">
+                        <Text text="Material"/>
+                    </Column>
+                    <Column importance="Low" popinDisplay="Inline" width="6rem">
+                        <Text text="Plant"/>
+                    </Column>
+                    <Column importance="Low" popinDisplay="Inline" width="6rem">
+                        <Text text="Storage Loc."/>
+                    </Column>
+                    <Column importance="Medium" popinDisplay="Inline">
+                        <Text text="Batch"/>
+                    </Column>
+                    <Column importance="Medium" popinDisplay="Inline">
+                        <Text text="Bin"/>
+                    </Column>
+                    <Column importance="Low" popinDisplay="Inline" width="5rem">
+                        <Text text="Stor Type"/>
+                    </Column>
+                    <Column importance="High" width="7rem">
+                        <Text text="Counted Qty"/>
+                    </Column>
+                    <Column importance="Low" popinDisplay="Inline" width="5rem">
+                        <Text text="UOM"/>
+                    </Column>
+                    <Column importance="Medium" popinDisplay="Inline">
+                        <Text text="Inventory Page"/>
+                    </Column>
+                    <Column importance="Medium" popinDisplay="Block">
+                        <Text text="GR Date"/>
+                    </Column>
+                    <Column importance="High" width="4rem">
+                        <Text text="Delete"/>
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Input enabled="false" value="{entryModel>MATNR}" />
+                            <Input enabled="false" value="{entryModel>WERKS}" />
+                            <Input enabled="false" value="{entryModel>LGORT}" />
+
+                            <Input value="{entryModel>Charg}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBatch" valueHelpOnly="true" submit=".onSubmitBatch"/>
+
+                            <Input value="{entryModel>LGPLA}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBin" valueHelpOnly="true" submit=".onSubmitBin"/>
+
+                            <Input enabled="false" value="{entryModel>LGTYP}" />
+
+                            <!-- <Input id="inputCreateLineItemQuantity" value="{ path: 'entryModel>MENGE', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 999999 } }" required="true" liveChange=".validateQty" /> -->
+                            <!-- <Input id="inputCreateLineItemQuantity" value="{path: 'entryModel>MENGE', formatter: '.formatter.validateInteger'}" valueState="{path: 'entryModel>MENGE', formatter: '.formatter.valueStateInteger'}" required="true" liveChange=".validateQty" /> -->
+                            <Input id="inputCreateLineItemQuantity" value="{entryModel>MENGE}" required="true" liveChange=".validateQty" />
+
+                            <Input enabled="false" value="{entryModel>Meins}" />
+
+                            <Input id="inputCreateLineItemInvPage" value="{ path: 'entryModel>ISEIT', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 99999 } }" required="true" />
+
+                            <DatePicker id="datePickerItemDate" required="true" change="onItemDateChange" placeholder=" " value="{ path: 'entryModel>WDATU', type: 'sap.ui.model.odata.type.DateTime', formatOptions: { pattern: 'dd.MM.yyyy', UTC: true } }" />
+
+                            <Button icon="sap-icon://delete" type="Reject" press=".onDeleteRow"/>
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+
+        <footer>
+            <OverflowToolbar>
+                <Button id="buttonMessagePopover" visible="{=!!${message>/}.length}" icon="{ path: '/', formatter: '.buttonIconFormatter' }" type="{ path: '/', formatter: '.buttonTypeFormatter' }" text="{ path: '/', formatter: '.highestSeverityMessages' }" press=".handleMessagePopoverPress" ariaHasPopup="Dialog" />
+                <ToolbarSpacer />
+                <Button text="Cancel" press=".onPressNavigateBack"/>
+                <!-- <Button text="Submit" type="Emphasized" press=".onSubmit"/> -->
+                <Button text="Submit" type="Emphasized" icon="sap-icon://save" press=".onErrorCheckForSubmit"/>
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

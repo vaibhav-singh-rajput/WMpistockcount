@@ -1,0 +1,72 @@
+<core:FragmentDefinition xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog id="confirmDialog" draggable="true" resizable="true" title="Confirm Items" contentWidth="80%" contentHeight="60%" stretchOnPhone="true">
+
+        <VBox width="100%" renderType="Bare">
+            <Table id="idConfirmTable" inset="false" items="{confirmModel>/items}" autoPopinMode="true" sticky="ColumnHeaders">
+
+                <columns>
+                    <Column>
+                        <Text text="Material"/>
+                    </Column>
+                    <Column>
+                        <Text text="Plant"/>
+                    </Column>
+                    <Column>
+                        <Text text="Storage Loc."/>
+                    </Column>
+                    <Column>
+                        <Text text="Batch"/>
+                    </Column>
+                    <Column>
+                        <Text text="Bin"/>
+                    </Column>
+                    <Column>
+                        <Text text="Storage Type"/>
+                    </Column>
+                    <Column importance="High">
+                        <Text text="Counted Quantity"/>
+                    </Column>
+                    <Column>
+                        <Text text="UOM"/>
+                    </Column>
+                    <Column>
+                        <Text text="Inventory Page"/>
+                    </Column>
+                    <Column>
+                        <Text text="GR Date"/>
+                    </Column>
+                </columns>
+
+                <items>
+                    <ColumnListItem>
+                        <cells>
+                            <Text text="{confirmModel>IVPOS}" />
+                            <Text text="{confirmModel>MATNR}" />
+                            <Text text="{confirmModel>WERKS}" />
+                            <Text text="{confirmModel>LGORT}" class="highlightColumn" />
+                            <Text text="{confirmModel>LGTYP}" />
+                            <Text text="{confirmModel>LGPLA}" />
+                            <Text text="{confirmModel>MENGE}" class="highlightColumn" />
+                            <Text text="{confirmModel>ALTME}" />
+                        </cells>
+                    </ColumnListItem>
+
+                </items>
+
+            </Table>
+        </VBox>
+
+        <beginButton>
+            <Button text="OK" type="Accept" press=".onConfirmOk" />
+        </beginButton>
+
+        <endButton>
+            <Button text="Cancel" press=".onConfirmCancel" />
+        </endButton>
+
+    </Dialog>
+
+</core:FragmentDefinition>
