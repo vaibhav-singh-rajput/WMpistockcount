@@ -16,8 +16,9 @@ server:
             - /test-resources
           url: https://ui5.sap.com
         backend:
-          - path: /V2
-            url: https://services.odata.org
+          - path: /sap
+            url: http://dct:44300
+            client: "300"
             destination: ERP
     - name: fiori-tools-appreload
       afterMiddleware: compression
