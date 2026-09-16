@@ -3,6 +3,18 @@
   "authenticationMethod": "route",
   "routes": [
     {
+      "source": "^/user-api(.*)",
+      "target": "$1",
+      "service": "sap-approuter-userapi"
+    },
+    {
+      "source": "^/sap/(.*)$",
+      "target": "/sap/$1",
+      "destination": "ERP",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
       "source": "^/V2/(.*)$",
       "target": "/V2/$1",
       "destination": "Northwind",
