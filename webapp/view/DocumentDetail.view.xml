@@ -42,7 +42,7 @@
                 </headerToolbar>
 
                 <columns>
-                    <Column>
+                    <Column width="4rem">
                         <Text text="Select"/>
                     </Column>
                     <Column>
@@ -64,6 +64,9 @@
                         <Text text="Storage Bin"/>
                     </Column>
                     <Column>
+                        <Text text="Booked Qty"/>
+                    </Column>
+                    <Column>
                         <Text text="Counted Quantity"/>
                     </Column>
                     <Column>
@@ -77,16 +80,17 @@
 
                             <CheckBox selected="{itemModel>Flag}" select="onItemSelect"/>
 
-                            <Text text="{itemModel>IVPOS}" />
-                            <Text text="{itemModel>MATNR}" />
-                            <Text text="{itemModel>WERKS}" />
-                            <Text text="{itemModel>Charg}" />
-                            <Text text="{itemModel>LGTYP}" />
-                            <Text text="{itemModel>LGPLA}" />
+                            <Text text="{itemModel>Ivpos}" />
+                            <Text text="{itemModel>Matnr}" />
+                            <Text text="{itemModel>Werks}" />
+                            <Text text="{itemModel>Batch}" />
+                            <Text text="{itemModel>Lgtyp}" />
+                            <Text text="{itemModel>Lgpla}" />
+                            <Text text="{itemModel>BookedQty}" />
 
-                            <Input value="{itemModel>MENGE}" type="Number" change=".onInputCountChange" />
+                            <Input value="{itemModel>CountedQty}" type="Number" change=".onInputCountChange" />
 
-                            <Text text="{itemModel>ALTME}" />
+                            <Text text="{itemModel>Uom}" />
 
                         </cells>
                     </ColumnListItem>

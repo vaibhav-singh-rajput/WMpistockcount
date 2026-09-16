@@ -55,14 +55,14 @@ sap.ui.define([
         _handleRouteMatched(oEvent) {
             sap.ui.getCore().getMessageManager().removeAllMessages();
 
-            const sUrlDocumentId = oEvent.getParameter("arguments").docID;
-            const sSelected = this._oAppModel.getProperty("/selectedDocument");
+            const sSelectedDocument = this._oAppModel.getProperty("/selectedDocument");
 
-            if (!sSelected || sUrlDocumentId !== sSelected.Ivnum) {
+            if (!sSelectedDocument) {
                 return this._handleNoDocumentSelected();
             }
 
-            if (sUrlDocumentId !== this._sCurrentDocumentId) {
+            this._sCurrentDocumentId = sSelectedDocument.Ivnum;
+            if (this._sCurrentDocumentId) {
 
                 // Reset model (NO `/items` anymore)
                 this._oItemModel.setData({
@@ -72,9 +72,7 @@ sap.ui.define([
                     itemsPerPage: 5
                 }, true);
 
-                this._sCurrentDocumentId = sUrlDocumentId;
-
-                this._requestItemList(sUrlDocumentId);
+                this._requestItemList(this._sCurrentDocumentId);
             }
         },
 
@@ -92,14 +90,19 @@ sap.ui.define([
          * ======================================================= */
         _requestItemList(sDocumentId) {
 
-            this._oModel.read("/Items", {
-                filters: [new Filter("IVNUM", "EQ", sDocumentId)],
+            // this._oModel.read("/Items", {
+            this._oModel.read("/PhyInvItemSet", {
+                filters: [
+                    new Filter("Whse", "EQ", this._oAppModel.getProperty("/selectedWarehouse")),
+                    new Filter("Ivnum", "EQ", sDocumentId)
+
+                ],
 
                 success: (oData) => {
 
                     oData.results.forEach((item, i) => {
                         item.Flag = false;
-                        // item.MENGE = null;
+                        // item.CountedQty = null;
                         item.INDEX = i; // needed for pagination filter
                     });
 
@@ -146,10 +149,10 @@ sap.ui.define([
             if (sQuery) {
                 const q = sQuery.toLowerCase();
                 filteredItems = allItems.filter(item =>
-                    (item.IVPOS && item.IVPOS.toString().includes(q)) ||
-                    (item.MATNR && item.MATNR.toLowerCase().includes(q)) ||
-                    (item.LGPLA && item.LGPLA.toLowerCase().includes(q)) ||
-                    (item.Charg && item.Charg.toLowerCase().includes(q))
+                    (item.Ivpos && item.Ivpos.toString().includes(q)) ||
+                    (item.Matnr && item.Matnr.toLowerCase().includes(q)) ||
+                    (item.Lgpla && item.Lgpla.toLowerCase().includes(q)) ||
+                    (item.Batch && item.Batch.toLowerCase().includes(q))
                 );
             }
 
@@ -189,10 +192,10 @@ sap.ui.define([
             if (sQuery) {
                 aFilters.push(new Filter({
                     filters: [
-                        new Filter("IVPOS", FilterOperator.EQ, sQuery),
-                        new Filter("MATNR", FilterOperator.Contains, sQuery),
-                        new Filter("LGPLA", FilterOperator.Contains, sQuery),
-                        new Filter("Charg", FilterOperator.Contains, sQuery)
+                        new Filter("Ivpos", FilterOperator.EQ, sQuery),
+                        new Filter("Matnr", FilterOperator.Contains, sQuery),
+                        new Filter("Lgpla", FilterOperator.Contains, sQuery),
+                        new Filter("Batch", FilterOperator.Contains, sQuery)
                     ],
                     and: false
                 }));
@@ -255,7 +258,7 @@ sap.ui.define([
                 return MessageToast.show("No items selected for zero count.");
             }
 
-            const ivPosValues = selectedItems.map(i => i.IVPOS).join(", ");
+            const ivPosValues = selectedItems.map(i => i.Ivpos).join(", ");
 
             const oDialog = new sap.m.Dialog({
                 title: "Confirm Zero Count",
@@ -270,7 +273,7 @@ sap.ui.define([
 
                         allItems.forEach(item => {
                             if (item.Flag === true) {
-                                item.MENGE = 0;
+                                item.CountedQty = "0";
                                 item.Flag = false;
                             }
                         });
@@ -303,19 +306,82 @@ sap.ui.define([
         /* =======================================================
          * DRAFT & SUBMIT
          * ======================================================= */
+
+        // onSaveDraft() { this._openConfirmDialog("draft"); },
+        // onSubmit() { this._openConfirmDialog("submit"); },
+
+        //Button clicks
+        onSaveDraft() { this.onErrorCheck("draft"); },
+        onSubmit() { this.onErrorCheck("submit"); },
+
+        /* =======================================================
+        * ERROR CHECK BEFORE SUBMIT
+        * ======================================================= */
+        onErrorCheck(action) {
+
+            sap.ui.getCore().getMessageManager().removeAllMessages();
+
+            const allItems = this._oItemModel.getProperty("/allItems") || [];
+
+            const counted = allItems.filter(i => i.CountedQty !== null && i.CountedQty !== "");
+
+            if (counted.length === 0) {
+                this.createErrorMessage("Please start Counting first.", "");
+                this.refreshMessagePopover();
+                return;
+            }
+
+            let errors = 0;
+
+            counted.forEach(item => {
+                const v = Number(item.CountedQty);
+
+                if (!/^[0-9]+$/.test(item.CountedQty)) {
+                    this.createErrorMessage("Only integer numbers (0–9) allowed", "");
+                    errors++;
+                }
+
+                if (v < 0) {
+                    this.createErrorMessage(`Batch ${item.Batch}: Count less than limit`, "");
+                    errors++;
+                }
+
+                if (v >= 999999999999999) {
+                    this.createErrorMessage(`Batch ${item.Batch}: Count more than limit`, "");
+                    errors++;
+                }
+            });
+
+            if (errors !== 0) this.refreshMessagePopover();
+
+            if (errors === 0) {
+                sap.ui.getCore().getMessageManager().removeAllMessages();
+                this._openConfirmDialog(action);
+            }
+        },
+
+        /* =======================================================
+         * DRAFT & SUBMIT Confirmation Dialog
+         * ======================================================= */
         _openConfirmDialog(action) {
             this._pendingAction = action;
 
             const allItems = this._oItemModel.getProperty("/allItems") || [];
 
             const filtered = allItems.filter(item =>
-                item.MENGE !== null &&
-                item.MENGE !== "" &&
-                !isNaN(Number(item.MENGE))
+                item.CountedQty !== null &&
+                item.CountedQty !== "" &&
+                !isNaN(Number(item.CountedQty))
             );
 
-            const oConfirmModel = new sap.ui.model.json.JSONModel({ items: filtered });
-            this.getView().setModel(oConfirmModel, "confirmModel");
+            let oConfirmModel = this.getView().getModel("confirmModel");
+            if (oConfirmModel) {
+                oConfirmModel.setProperty("/items", filtered);
+                oConfirmModel.refresh(true); // Forces bindings to re-evaluate the array update
+            } else {
+                oConfirmModel = new sap.ui.model.json.JSONModel({ items: filtered });
+                this.getView().setModel(oConfirmModel, "confirmModel");
+            }
 
             if (!this._oConfirmDialog) {
                 Fragment.load({
@@ -335,83 +401,31 @@ sap.ui.define([
         onConfirmOk() {
             this._oConfirmDialog.close();
 
-            if (this._pendingAction === "draft") this._callODataSaveDraft();
-            if (this._pendingAction === "submit") this._callODataSubmit();
+            // if (this._pendingAction === "draft") this._callODataSaveDraft();
+            if (this._pendingAction === "draft") this._callODataSubmit("SAVE_DRAFT");
+            if (this._pendingAction === "submit") this._callODataSubmit("SUBMIT");
         },
 
         onConfirmCancel() {
             this._oConfirmDialog.close();
         },
 
-        // onSaveDraft() { this._openConfirmDialog("draft"); },
-        // onSubmit() { this._openConfirmDialog("submit"); },
-
-        //Button clicks
-        onSaveDraft() { this.onErrorCheck("draft"); },
-        onSubmit() { this.onErrorCheck("submit"); },
-
         /* =======================================================
-         * ERROR CHECK BEFORE SUBMIT
-         * ======================================================= */
-        onErrorCheck(action) {
-
-            sap.ui.getCore().getMessageManager().removeAllMessages();
-
-            const allItems = this._oItemModel.getProperty("/allItems") || [];
-
-            const counted = allItems.filter(i => i.MENGE !== null && i.MENGE !== "");
-
-            if (counted.length === 0) {
-                this.createErrorMessage("Please start Counting first.", "");
-                this.refreshMessagePopover();
-                return;
-            }
-
-            let errors = 0;
-
-            counted.forEach(item => {
-                const v = Number(item.MENGE);
-
-                if (!/^[0-9]+$/.test(item.MENGE)) {
-                    this.createErrorMessage("Only integer numbers (0–9) allowed", "");
-                    errors++;
-                }
-
-                if (v < 0) {
-                    this.createErrorMessage(`Batch ${item.Charg}: Count less than limit`, "");
-                    errors++;
-                }
-
-                if (v >= 999999999999999) {
-                    this.createErrorMessage(`Batch ${item.Charg}: Count more than limit`, "");
-                    errors++;
-                }
-            });
-
-            if (errors !== 0) this.refreshMessagePopover();
-
-            if (errors === 0) {
-                sap.ui.getCore().getMessageManager().removeAllMessages();
-                this._openConfirmDialog(action);
-            }
-        },
-
-        /* =======================================================
-         * BACKEND CALLS
-         * ======================================================= */
+        * BACKEND CALLS
+        * ======================================================= */
         //Draft
-        _callODataSaveDraft() {
+        // _callODataSaveDraft() {
 
-            const items = this._oItemModel.getProperty("/allItems");
+        //     const items = this._oItemModel.getProperty("/allItems");
 
-            this._oModel.create("/DraftSaveSet", { Items: items }, {
-                success: () => {
-                    MessageToast.show("Draft saved successfully");
-                    this.onNavToMain();
-                },
-                error: () => MessageToast.show("Error while saving draft")
-            });
-        },
+        //     this._oModel.create("/DraftSaveSet", { Items: items }, {
+        //         success: () => {
+        //             MessageToast.show("Draft saved successfully");
+        //             this.onNavToMain();
+        //         },
+        //         error: () => MessageToast.show("Error while saving draft")
+        //     });
+        // },
 
         //Submit
         _odataCreate: function (sPath, oPayload) {
@@ -423,19 +437,36 @@ sap.ui.define([
             });
         },
 
-        async _callODataSubmit() {
+        async _callODataSubmit(action) {
             const oView = this.getView();
             const oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-            const items = this._oItemModel.getProperty("/allItems");
+            // const items = this._oItemModel.getProperty("/allItems");
+            const items = this.getView().getModel("confirmModel").getProperty("/items");
+
+            // Assuming your original array is named `items`
+            var cleanedItemsArray = items.map(function (item) {
+                // Destructure out the properties you want to remove, and collect the rest into `rest`
+                var { __metadata, Flag, INDEX, ...rest } = item;
+                return rest;
+            });
+
+            const deepEntityDataPayload = {
+                Whse: this._oAppModel.getProperty("/selectedWarehouse"),
+                Ivnum: this._sCurrentDocumentId,
+                InvStatus: "Z",
+                Action: action,
+                PhyInvItemSet: cleanedItemsArray
+            };
 
             try {
                 oView.setBusy(true);               // Busy ON
 
                 // --- OData call in async way ---
-                await this._odataCreate("/SubmitSet", { Items: items });
+                // await this._odataCreate("/SubmitSet", { Items: items });
+                await this._odataCreate("/PhyInvInfoSet", deepEntityDataPayload);
 
                 // Artificial delay only for testing busy indicator visibility
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // await new Promise(resolve => setTimeout(resolve, 3000));
 
                 oView.setBusy(false);              // Busy OFF
 
@@ -451,8 +482,6 @@ sap.ui.define([
                 oRouter.navTo("Main", {}, true);
 
             } catch (oError) {
-                // Artificial delay only for testing busy indicator visibility
-                await new Promise(resolve => setTimeout(resolve, 3000));
                 oView.setBusy(false);              // Busy OFF
                 await new Promise(resolve => {
                     MessageBox.error(
@@ -486,10 +515,10 @@ sap.ui.define([
             let updated = false;
 
             all.forEach(item => {
-                if (item.Charg === scanned_ean) {
-                    const current = Number(item.MENGE);
+                if (item.Batch === scanned_ean) {
+                    const current = Number(item.CountedQty);
                     const safe = isNaN(current) ? 0 : current;
-                    item.MENGE = safe + 1;
+                    item.CountedQty = String(safe + 1);
                     updated = true;
                 }
             });
@@ -532,8 +561,19 @@ sap.ui.define([
         },
 
         onNavToNewEntry: function () {
-            const oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-            oRouter.navTo("NewEntry", {}, true);
+            var allItems = this._oItemModel.getProperty("/allItems");
+            const selectedItems = allItems.filter(i => i.Flag === true);
+
+            if (selectedItems.length === 0) {
+                MessageToast.show("No Storage Bin selected for adding new item.Please select any row.");
+            } else if (selectedItems.length > 1) {
+                MessageToast.show("Please select any one row.");
+            } else {
+                let sSelectedStorageBin = selectedItems[0].Lgpla;
+                this._oAppModel.setProperty("/selectedStorageBin", sSelectedStorageBin);
+                const oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+                oRouter.navTo("NewEntry", {}, true);
+            }
         },
     });
 });

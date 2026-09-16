@@ -22,17 +22,12 @@ sap.ui.define([
             //@ts-ignore
             this.confirmationSound = new Audio($.sap.getModulePath('com.triumph.pistockcount', '/audio/confirm.mp3'));
 
-            // this.errorSound.play();
-            // this.successSound.play();
-            // this.informationSound.play();
-            // this.confirmationSound.play();
-
             this._oModel = this.getOwnerComponent().getModel();
             this._oAppModel = this.getOwnerComponent().getModel("appModel");
             this._oDocumentModel = this.getOwnerComponent().getModel("documentModel");
 
             // remove for taking Warehouse input from user - skiping for development
-            this._oAppModel.setProperty("/selectedWarehouse", "MA1");
+            // this._oAppModel.setProperty("/selectedWarehouse", "AU1");
 
             this.getRouter().getRoute("Main").attachPatternMatched(this._handleRouteMatched, this);
 
@@ -158,22 +153,23 @@ sap.ui.define([
         /* For loading  data with warehouse Number                                      */
         /* ============================================================================ */
         _requestDocumentList: function () {
-            this._oModel.read("/InvHeaderSet", {
+            // this._oModel.read("/InvHeaderSet", {
+            this._oModel.read("/PhyInvInfoSet", {
                 method: "GET",
                 filters: [
                     new Filter(
-                        "Lgnum",
+                        "Whse",
                         "EQ",
                         this._oAppModel.getProperty("/selectedWarehouse"))
                 ],
                 success: (oData) => {
-                    // this.successSound.play();
+                    this.successSound.play();
                     this.successSound.volume = 0.01;
                     console.debug("Document list oData response:\n", oData);
                     this._oDocumentModel.setProperty("/documents", oData.results);
                 },
                 error: () => {
-                    // this.errorSound.play();
+                    this.errorSound.play();
                     MessageBox.error("Error during request of Document. Please contact an application administrator.");
                 }
             });
@@ -223,7 +219,7 @@ sap.ui.define([
             var oBinding = oTable.getBinding("items");
 
             if (sSelectedKey) {
-                var oFilter = new sap.ui.model.Filter("Istat", sap.ui.model.FilterOperator.EQ, sSelectedKey);
+                var oFilter = new sap.ui.model.Filter("InvStatus", sap.ui.model.FilterOperator.EQ, sSelectedKey);
                 oBinding.filter([oFilter]);
             } else {
                 oBinding.filter([]); // Show all if "All" is selected
@@ -242,7 +238,7 @@ sap.ui.define([
                 aFilters.push(new sap.ui.model.Filter({
                     filters: [
                         new sap.ui.model.Filter("Ivnum", sap.ui.model.FilterOperator.EQ, sQuery),
-                        new sap.ui.model.Filter("Istat", sap.ui.model.FilterOperator.Contains, sQuery)
+                        new sap.ui.model.Filter("InvStatus", sap.ui.model.FilterOperator.Contains, sQuery)
                     ],
                     and: false // OR condition
                 }));

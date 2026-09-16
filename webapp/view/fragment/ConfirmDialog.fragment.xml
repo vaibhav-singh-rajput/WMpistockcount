@@ -37,14 +37,14 @@
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <Text text="{confirmModel>IVPOS}" />
-                            <Text text="{confirmModel>MATNR}" />
-                            <Text text="{confirmModel>WERKS}" />
-                            <ObjectIdentifier title="{confirmModel>Charg}" />
-                            <Text text="{confirmModel>LGTYP}" />
-                            <Text text="{confirmModel>LGPLA}" />
-                            <ObjectIdentifier title="{confirmModel>MENGE}" />
-                            <Text text="{confirmModel>ALTME}" />
+                            <Text text="{confirmModel>Ivpos}" />
+                            <Text text="{confirmModel>Matnr}" />
+                            <Text text="{confirmModel>Werks}" />
+                            <ObjectIdentifier title="{confirmModel>Batch}" />
+                            <Text text="{confirmModel>Lgtyp}" />
+                            <Text text="{confirmModel>Lgpla}" />
+                            <ObjectIdentifier title="{confirmModel>CountedQty}" />
+                            <Text text="{confirmModel>Uom}" />
                         </cells>
                     </ColumnListItem>
 

@@ -3,11 +3,12 @@ sap.ui.define([
   "./BaseController",
   "sap/ui/model/json/JSONModel",
   "sap/m/MessageBox",
+  "sap/m/MessageToast",
   "sap/ui/model/Filter",
   "sap/ui/model/FilterOperator",
   "sap/ui/core/Fragment",
   "../model/formatter"
-], (BaseController, JSONModel, MessageBox, Filter, FilterOperator, Fragment, formatter) => {
+], (BaseController, JSONModel, MessageBox, MessageToast, Filter, FilterOperator, Fragment, formatter) => {
   "use strict";
   return BaseController.extend("com.triumph.pistockcount.controller.NewEntry", {
     formatter: formatter,
@@ -23,6 +24,7 @@ sap.ui.define([
       this._oModel = this.getOwnerComponent().getModel();
       this._oAppModel = this.getOwnerComponent().getModel("appModel");
       this._sCurrentDocument = null;
+      this._sCurrentStorageBin = null;
 
       //Set focus into first field of page - scanner
       var that = this;
@@ -34,7 +36,7 @@ sap.ui.define([
         }
       });
       // remove after development complition 
-      this._DevMode = true;
+      this._DevMode = false;
       this.getRouter().getRoute("NewEntry").attachPatternMatched(this._handleRouteMatched, this);
       // Validation and -message manager
       sap.ui.getCore().getMessageManager().registerObject(this.getView(), true);
@@ -45,17 +47,19 @@ sap.ui.define([
       if (this._DevMode) {
         this.createFreshEntry();
       } else {
-        if (this._oAppModel.getProperty("/selectedWarehouse") && this._oAppModel.getProperty("/selectedDocument")) {
-          if (this._sCurrentDocument) {
-            if (this._sCurrentDocument == this._oAppModel.getProperty("/selectedDocument")) {
-              console.log("Skipped  as this._sCurrentDocument == this._oAppModel.getProperty(/selectedDocument)");
+        if (this._oAppModel.getProperty("/selectedWarehouse") && this._oAppModel.getProperty("/selectedDocument") && this._oAppModel.getProperty("/selectedStorageBin")) {
+          if (this._sCurrentDocument && this._sCurrentStorageBin) {
+            if (this._sCurrentDocument == this._oAppModel.getProperty("/selectedDocument") && this._sCurrentStorageBin == this._oAppModel.getProperty("/selectedStorageBin")) {
+              console.log("Skipped  as this._sCurrentDocument == this._oAppModel.getProperty(/selectedDocument) && this._sCurrentStorageBin == this._oAppModel.getProperty(/selectedStorageBin) ");
             } else {
               this._sCurrentDocument = this._oAppModel.getProperty("/selectedDocument");
+              this._sCurrentStorageBin = this._oAppModel.getProperty("/selectedStorageBin");
               this.createFreshEntry(); //current doc and selected doc mis match
               console.log("Fresh entry created as this._sCurrentDocument != this._oAppModel.getProperty(/selectedDocument) ");
             }
           } else {
             this._sCurrentDocument = this._oAppModel.getProperty("/selectedDocument");
+            this._sCurrentStorageBin = this._oAppModel.getProperty("/selectedStorageBin");
             this.createFreshEntry();
             console.log("Fresh entry created _sCurrentDocument was null");
           }
@@ -75,7 +79,7 @@ sap.ui.define([
       // if (!oEntryModel) {
       // First time open -> Create model with 10 blank rows
       oEntryModel = new JSONModel({
-        Items: this._getInitialRows(10)
+        Items: this._getInitialRows(10, this._sCurrentStorageBin)
       });
       // Attach model to Component (persist between navigations)
       oComponent.setModel(oEntryModel, "entryModel");
@@ -83,7 +87,7 @@ sap.ui.define([
       // Attach same model to the view
       this.getView().setModel(oEntryModel, "entryModel");
       this._oEntryModel = this.getView().getModel("entryModel");
-      this._initialiseSelects();
+      // this._initialiseSelects();//No need of Batch and Bin laoding
       //Clearing all error  message after fresh entry created -message manager
       sap.ui.getCore().getMessageManager().removeAllMessages();
     },
@@ -99,11 +103,11 @@ sap.ui.define([
     //   }
     // },
     // Create N empty rows
-    _getInitialRows(count) {
+    _getInitialRows(count, stgBin) {
       const blank = {
-        MATNR: "", WERKS: "", LGORT: "", Charg: "",
-        LGTYP: "", LGPLA: "", MENGE: null, Meins: "",
-        ISEIT: null, WDATU: "",
+        Matnr: "", Werks: "", LGORT: "", Batch: "",
+        Lgtyp: "", Lgpla: stgBin, CountedQty: null, Meins: "",
+        ISEIT: null, GrDate: "",
         ERROR: false,
         MESSAGE: ""
       };
@@ -113,12 +117,13 @@ sap.ui.define([
      * ADD ROW BUTTON
      * -------------------------------------------------------*/
     onAddRow() {
+      const stgBin = this._sCurrentStorageBin;
       const oModel = this.getView().getModel("entryModel");
       const items = oModel.getProperty("/Items");
       items.push({
-        MATNR: "", WERKS: "", LGORT: "", Charg: "",
-        LGTYP: "", LGPLA: "", MENGE: null, Meins: "",
-        ISEIT: null, WDATU: "",
+        Matnr: "", Werks: "", LGORT: "", Batch: "",
+        Lgtyp: "", Lgpla: stgBin, CountedQty: null, Meins: "",
+        ISEIT: null, GrDate: "",
         ERROR: false,
         MESSAGE: ""
       });
@@ -154,39 +159,85 @@ sap.ui.define([
       const allItems = oEntryModel.getProperty("/Items");
 
       // Only submit rows that passed error check
-      const itemsToSubmit = allItems.filter(item => !item.ERROR && item.MENGE !== null && item.MENGE !== "");
+      const itemsToSubmit = allItems.filter(item => !item.ERROR && item.CountedQty !== null && item.CountedQty !== "");
 
       let success = 0, error = 0;
 
       // Reset messages before submission
       itemsToSubmit.forEach(item => { item.MESSAGE = ""; });
+      console.log(itemsToSubmit);
+      itemsToSubmit.forEach(item => {
+        item.Whse = this._oAppModel.getProperty("/selectedWarehouse");
+        item.Ivnum = this._sCurrentDocument.Ivnum;
+      });
+      console.log(itemsToSubmit);
 
-      for (let item of itemsToSubmit) {
-        try {
-          await this._saveToBackend(item); // Submit to backend
-          item._DELETE = true;             // Mark as successfully submitted
-          success++;
-        } catch (err) {
-          item.ERROR = true;               // Mark as failed
-          item.MESSAGE = err.message;
-          error++;
-        }
+      var aOriginalData = itemsToSubmit;
+      // Assuming aOriginalData is your array of objects
+      var aPayload = aOriginalData.map(function (oItem) {
+        return {
+          Matnr: oItem.Matnr,
+          Werks: oItem.Werks,
+          Batch: oItem.Batch,
+          Lgtyp: oItem.Lgtyp,
+          Lgpla: oItem.Lgpla,
+          CountedQty: oItem.CountedQty,
+          Uom: oItem.Meins, // Mapping Meins to Uom
+          // GrDate: oItem.GrDate,
+          Whse: oItem.Whse,
+          Ivnum: oItem.Ivnum
+        };
+      });
+
+
+      const deepEntityDataPayload = {
+        Whse: this._oAppModel.getProperty("/selectedWarehouse"),
+        Ivnum: this._sCurrentDocument.Ivnum,
+        Action: "NEW_ITEM",
+        AddPiItemSet: aPayload
+      };
+
+      try {
+        await this._saveToBackend(deepEntityDataPayload); // Submit to backend
+        // for (let item of itemsToSubmit) {
+        //   try {
+        //     await this._saveToBackend(item); // Submit to backend
+        //     item._DELETE = true;             // Mark as successfully submitted
+        //     success++;
+        //   } catch (err) {
+        //     item.ERROR = true;               // Mark as failed
+        //     item.MESSAGE = err.message;
+        //     error++;
+        //   }
+        // }
+
+        // Keep only rows that were not successfully submitted
+        const remainingRows = allItems.filter(item => !item._DELETE);
+        oEntryModel.setProperty("/Items", remainingRows);
+        oEntryModel.refresh(true);
+
+        MessageBox.information(
+          `${success} items submitted successfully.\n${error} failed.`
+        );
+      } catch (err) {
+        // item.ERROR = true;               // Mark as failed
+        // item.MESSAGE = err.message;
+        // error++;
+        MessageBox.error(
+          `${err.message.value}`
+        );
       }
-
-      // Keep only rows that were not successfully submitted
-      const remainingRows = allItems.filter(item => !item._DELETE);
-      oEntryModel.setProperty("/Items", remainingRows);
-      oEntryModel.refresh(true);
-
-      MessageBox.information(
-        `${success} items submitted successfully.\n${error} failed.`
-      );
     },
 
-    _saveToBackend(payload) {
+    _saveToBackend(oPayload) {
       return new Promise((resolve, reject) => {
-        if (payload.ERROR) reject(new Error("Item missing required info."));
-        else setTimeout(resolve, 200);
+        this._oModel.create("/PhyInvInfoSet", oPayload, {
+          success: resolve,
+          error: (oError) => {
+            this.stopBusyIndicatorManually();
+            reject(oError);
+          }
+        });
       });
     },
 
@@ -199,7 +250,7 @@ sap.ui.define([
       const allItems = oEntryModel.getProperty("/Items");
 
       // Only submit rows that passed error check
-      const itemsToSubmit = allItems.filter(item => !item.ERROR && item.MENGE !== null && item.MENGE !== "");
+      const itemsToSubmit = allItems.filter(item => !item.ERROR && item.CountedQty !== null && item.CountedQty !== "");
 
       const oConfirmModel = new sap.ui.model.json.JSONModel({ items: itemsToSubmit });
       this.getView().setModel(oConfirmModel, "confirmModel");
@@ -207,7 +258,7 @@ sap.ui.define([
       if (!this._oConfirmDialog) {
         Fragment.load({
           id: this.getView().getId(),
-          name: "com.triumph.pistockcount.view.fragment.ConfirmDialog",
+          name: "com.triumph.pistockcount.view.fragment.NewEntryConfirmDialog",
           controller: this
         }).then(oDialog => {
           this._oConfirmDialog = oDialog;
@@ -244,7 +295,7 @@ sap.ui.define([
       const allItems = oEntryModel.getProperty("/Items");
 
       // Filter out rows where quantity is not entered
-      const countedItems = allItems.filter(item => item.MENGE !== null && item.MENGE !== "");
+      const countedItems = allItems.filter(item => item.CountedQty !== null && item.CountedQty !== "");
 
       if (countedItems.length === 0) {
         this.createErrorMessage("Please fill in at least one row before submitting.", "");
@@ -264,8 +315,8 @@ sap.ui.define([
 
 
         // Quantity check
-        const qty = Number(item.MENGE);
-        if (!/^[0-9]+$/.test(item.MENGE)) {
+        const qty = Number(item.CountedQty);
+        if (!/^[0-9]+$/.test(item.CountedQty)) {
           rowErrors.push("Only integer numbers allowed for quantity");
         } else if (qty <= 0) {
           rowErrors.push("Quantity must be greater than 0");
@@ -274,22 +325,22 @@ sap.ui.define([
         }
 
         // Other required fields
-        if (!item.MATNR) rowErrors.push("Material");
-        if (!item.MATNR) rowErrors.push("Plant");
-        if (!item.LGORT) rowErrors.push("Storage Loc.");
-        if (!item.Charg) rowErrors.push("Batch");
-        if (!item.LGPLA) rowErrors.push("Bin");
-        if (!item.LGPLA) rowErrors.push("Stor Type");
+        // if (!item.Matnr) rowErrors.push("Material");
+        // if (!item.Matnr) rowErrors.push("Plant");
+        // if (!item.LGORT) rowErrors.push("Storage Loc.");
+        if (!item.Batch) rowErrors.push("Batch");
+        if (!item.Lgpla) rowErrors.push("Bin");
+        if (!item.Lgpla) rowErrors.push("Stor Type");
         if (!item.Meins) rowErrors.push("UOM");
-        if (!item.ISEIT) rowErrors.push("Inventory Page");
-        if (!item.WDATU) rowErrors.push("GR Date");
+        // if (!item.ISEIT) rowErrors.push("Inventory Page");
+        // if (!item.GrDate) rowErrors.push("GR Date");
         if (rowErrors.length !== 0) rowErrors.push("should not be Empty.");
 
         // If any errors found, mark row and create aggregated message
         if (rowErrors.length > 0) {
           item.ERROR = true;
           errors++;
-          const title = item.MATNR || "New Row";
+          const title = item.Matnr || "New Row";
           const description = rowErrors.join(", ");
           this.createErrorMessage(title, description);
         }
@@ -382,8 +433,8 @@ sap.ui.define([
       if (!this._oVHInput || !this._sVHPath) return;
       var oModel = this.getView().getModel("entryModel");
       if (sSelectedKey) {
-        // Write MATNR to the correct row
-        oModel.setProperty(this._sVHPath + "/MATNR", sSelectedKey);
+        // Write Matnr to the correct row
+        oModel.setProperty(this._sVHPath + "/Matnr", sSelectedKey);
         // Update input field UI
         this._oVHInput.setValue(sSelectedKey);
       }
@@ -401,7 +452,7 @@ sap.ui.define([
       // var sSelectedKey = oEvent.getSource().getValue();
       // const oModel = this.getView().getModel("entryModel");
       // // const items = oModel.getProperty("/Items");
-      // oModel.setProperty("/Items/0/MATNR", sSelectedKey);
+      // oModel.setProperty("/Items/0/Matnr", sSelectedKey);
       // MessageBox.information(
       //   "Selected materia is : " + sSelectedKey
       // );
@@ -423,12 +474,12 @@ sap.ui.define([
     //     sap.m.MessageToast.show("Batch already used in another row.");
     //     // Reset input + model value
     //     oInput.setValue("");
-    //     aItems[iIndex].Charg = "";
+    //     aItems[iIndex].Batch = "";
     //     oTableModel.setProperty("/Items", aItems);
     //     oTableModel.refresh(true);
     //     return;
     //   }
-    //   aItems[iIndex].Charg = sValue;
+    //   aItems[iIndex].Batch = sValue;
     //   oTableModel.setProperty("/Items", aItems);
     //   oTableModel.refresh(true);
     // },
@@ -441,23 +492,23 @@ sap.ui.define([
       const oEntryModel = this.getView().getModel("entryModel");
       const aItems = oEntryModel.getProperty("/Items");
       const sValue = oInput.getValue();
-      // 👉 Check if any object in batchModel has Charg equal to newValue
+      // 👉 Check if any object in batchModel has Batch equal to newValue
       var batchModel = this.getView().getModel("batchModel").getData();
       var oSelecteBatchData = batchModel.filter(function (item) {
-        return item.Charg === sValue;
+        return item.Batch === sValue;
       });
       if (!oSelecteBatchData) {
         MessageToast("Unable to find batch");
         return;
       }
       // ✔️ Set batch to this row
-      // oEntryModel.setProperty("/Items/" + iIndex + "/Charg", sValue);
+      // oEntryModel.setProperty("/Items/" + iIndex + "/Batch", sValue);
       // ✔️ Example: update additional fields in the same row
-      oEntryModel.setProperty("/Items/" + iIndex + "/MATNR", oSelecteBatchData[0].Matnr);
-      oEntryModel.setProperty("/Items/" + iIndex + "/WERKS", oSelecteBatchData[0].Werks);
+      oEntryModel.setProperty("/Items/" + iIndex + "/Matnr", oSelecteBatchData[0].Matnr);
+      oEntryModel.setProperty("/Items/" + iIndex + "/Werks", oSelecteBatchData[0].Werks);
       oEntryModel.setProperty("/Items/" + iIndex + "/LGORT", oSelecteBatchData[0].Lgort);
       oEntryModel.setProperty("/Items/" + iIndex + "/Meins", oSelecteBatchData[0].Meins);
-      oEntryModel.setProperty("/Items/" + iIndex + "/MENGE", 1);
+      oEntryModel.setProperty("/Items/" + iIndex + "/CountedQty", 1);
       oEntryModel.refresh(true);
       this.successSound.play();
     },
@@ -465,7 +516,7 @@ sap.ui.define([
       var oTableModel = this.getView().getModel("entryModel");
       var aItems = oTableModel.getProperty("/Items");
       var idx = aItems.findIndex(function (item) {
-        return item.Charg === sValueBatchTitle;
+        return item.Batch === sValueBatchTitle;
       });
       return idx; // -1 means not found, 0/1/2.. are valid indices
     },
@@ -478,13 +529,13 @@ sap.ui.define([
       const oEntryModel = this.getView().getModel("entryModel");
       const aItems = oEntryModel.getProperty("/Items");
       // ✔️ Set batch to this row
-      // oEntryModel.setProperty("/Items/" + iIndex + "/Charg", sValue);
+      // oEntryModel.setProperty("/Items/" + iIndex + "/Batch", sValue);
       // ✔️ Example: update additional fields in the same row
-      oEntryModel.setProperty("/Items/" + iIndex + "/MATNR", "");
-      oEntryModel.setProperty("/Items/" + iIndex + "/WERKS", "");
+      oEntryModel.setProperty("/Items/" + iIndex + "/Matnr", "");
+      oEntryModel.setProperty("/Items/" + iIndex + "/Werks", "");
       oEntryModel.setProperty("/Items/" + iIndex + "/LGORT", "");
       oEntryModel.setProperty("/Items/" + iIndex + "/Meins", "");
-      oEntryModel.setProperty("/Items/" + iIndex + "/MENGE", null);
+      oEntryModel.setProperty("/Items/" + iIndex + "/CountedQty", null);
       oEntryModel.refresh(true);
       this.errorSound.play();
     },
@@ -501,7 +552,7 @@ sap.ui.define([
       const sPath = oContext.getPath();   // "/Items/3"
       const iIndex = parseInt(sPath.split("/").pop());
       const oEntryModel = this.getView().getModel("entryModel");
-      oEntryModel.setProperty("/Items/" + iIndex + "/LGTYP", StgTypofBin[0].StorageTyp);
+      oEntryModel.setProperty("/Items/" + iIndex + "/Lgtyp", StgTypofBin[0].StorageTyp);
       oEntryModel.refresh(true);
     },
     /* =========================================================== */
@@ -517,7 +568,7 @@ sap.ui.define([
       this.getView().addDependent(oDialog);
       oDialog.bindAggregation("items", {
         path: "batchModel>/",
-        template: new sap.m.StandardListItem({ title: "{batchModel>Charg}" })
+        template: new sap.m.StandardListItem({ title: "{batchModel>Batch}" })
       });
       oDialog.open();
     },
@@ -595,10 +646,10 @@ sap.ui.define([
       if (!newValue) {
         return;
       }
-      // 👉 Check if any object in batchModel has Charg equal to newValue
+      // 👉 Check if any object in batchModel has Batch equal to newValue
       var batchModel = this.getView().getModel("batchModel").getData();
       var exists = batchModel.some(function (item) {
-        return item.Charg === newValue;
+        return item.Batch === newValue;
       });
       if (exists) {
         console.log("Value exists in batchModel");
@@ -624,12 +675,12 @@ sap.ui.define([
       let updated = false;
       // Loop through the array
       allItemsforcheck.forEach((item, index) => {
-        if (item.Charg === scanned_batch) {
-          // Safely convert MENGE to a number, default to 0 if NaN
-          const currentMenge = Number(item.MENGE);
+        if (item.Batch === scanned_batch) {
+          // Safely convert CountedQty to a number, default to 0 if NaN
+          const currentMenge = Number(item.CountedQty);
           const safeMenge = isNaN(currentMenge) ? 0 : currentMenge;
-          // Increase MENGE by 1
-          item.MENGE = safeMenge + 1;
+          // Increase CountedQty by 1
+          item.CountedQty = safeMenge + 1;
           updated = true;
         }
       });
@@ -639,7 +690,7 @@ sap.ui.define([
         this._oEntryModel.setProperty("/Items", allItemsforcheck);
         this.refreshInput();
       } else {
-        const index = allItemsforcheck.findIndex(item => item.Charg === "");
+        const index = allItemsforcheck.findIndex(item => item.Batch === "");
         if (index !== -1 && this.isBatchSelected(scanned_batch) == -1) {
           const oTable = that.byId("invTable");
           const oItem = oTable.getItems()[index];

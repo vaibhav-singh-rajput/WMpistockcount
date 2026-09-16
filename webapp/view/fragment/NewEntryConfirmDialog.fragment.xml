@@ -14,9 +14,9 @@
                     <Column>
                         <Text text="Plant"/>
                     </Column>
-                    <Column>
+                    <!-- <Column>
                         <Text text="Storage Loc."/>
-                    </Column>
+                    </Column> -->
                     <Column>
                         <Text text="Batch"/>
                     </Column>
@@ -32,25 +32,27 @@
                     <Column>
                         <Text text="UOM"/>
                     </Column>
-                    <Column>
+                    <!-- <Column>
                         <Text text="Inventory Page"/>
-                    </Column>
-                    <Column>
+                    </Column> -->
+                    <!-- <Column>
                         <Text text="GR Date"/>
-                    </Column>
+                    </Column> -->
                 </columns>
 
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <Text text="{confirmModel>IVPOS}" />
-                            <Text text="{confirmModel>MATNR}" />
-                            <Text text="{confirmModel>WERKS}" />
-                            <Text text="{confirmModel>LGORT}" class="highlightColumn" />
-                            <Text text="{confirmModel>LGTYP}" />
-                            <Text text="{confirmModel>LGPLA}" />
-                            <Text text="{confirmModel>MENGE}" class="highlightColumn" />
-                            <Text text="{confirmModel>ALTME}" />
+                            <!-- <Text text="{confirmModel>Ivpos}" /> -->
+                            <Text text="{confirmModel>Matnr}" />
+                            <Text text="{confirmModel>Werks}" />
+                            <!-- <Text text="{confirmModel>LGORT}" class="highlightColumn" /> -->
+                            <Text text="{confirmModel>Batch}" />
+                            <Text text="{confirmModel>Lgpla}" />
+                            <Text text="{confirmModel>Lgtyp}" />
+                            <Text text="{confirmModel>CountedQty}" class="highlightColumn" />
+                            <Text text="{confirmModel>Meins}" />
+                            <!-- <Text text="{confirmModel>GrDate}" /> -->
                         </cells>
                     </ColumnListItem>
 

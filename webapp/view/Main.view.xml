@@ -44,7 +44,7 @@
                             <Text text="{documentModel>Ivnum}" />
                             <Text 
                                 text="{
-                                    path : 'documentModel>Istat',
+                                    path : 'documentModel>InvStatus',
                                     formatter : '.formatter.inventoryStatusFormatter'
                                 }" />
                         </cells>

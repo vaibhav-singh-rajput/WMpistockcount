@@ -62,12 +62,12 @@ sap.ui.define([
             //const oMockModel = new JSONModel(sap.ui.require.toUrl("com/triumph/pistockcount/model/MockData.json"));
             //this.setModel(oMockModel); // <--- no name → becomes the default model
 
-            const bUseMock = true; // or from config/env flag
-            const oModel = bUseMock
-                ? new MockODataModel(sap.ui.require.toUrl("com/triumph/pistockcount/model/MockData.json"))
-                : new ODataModel("/sap/opu/odata/sap/YOUR_SERVICE");//future odata
+            // const bUseMock = true; // or from config/env flag
+            // const oModel = bUseMock
+            //     ? new MockODataModel(sap.ui.require.toUrl("com/triumph/pistockcount/model/MockData.json"))
+            //     : new ODataModel("/sap/opu/odata/sap/YOUR_SERVICE");//future odata
 
-            this.setModel(oModel);
+            // this.setModel(oModel);
 
 
         }

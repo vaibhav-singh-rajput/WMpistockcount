@@ -19,9 +19,9 @@
                 <headerToolbar>
                     <OverflowToolbar>
                         <Button text="Add Row" icon="sap-icon://add" type="Emphasized" press=".onAddRow" class="sapUiSmallMarginBegin"/>
-                        <ToolbarSeparator/>
+                        <!-- <ToolbarSeparator/>
                         <Button icon="sap-icon://bar-code" type="Transparent" tooltip="Scan Barcode" press=".onScannerIconPress" />
-                        <Input id="idInputScanner" placeholder="Scan..." change="validateScannedBatch" width="8rem" />
+                        <Input id="idInputScanner" placeholder="Scan..." change="validateScannedBatch" width="8rem" /> -->
                         <ToolbarSpacer />
                     </OverflowToolbar>
                 </headerToolbar>
@@ -33,9 +33,9 @@
                     <Column importance="Low" popinDisplay="Inline" width="6rem">
                         <Text text="Plant"/>
                     </Column>
-                    <Column importance="Low" popinDisplay="Inline" width="6rem">
+                    <!-- <Column importance="Low" popinDisplay="Inline" width="6rem">
                         <Text text="Storage Loc."/>
-                    </Column>
+                    </Column> -->
                     <Column importance="Medium" popinDisplay="Inline">
                         <Text text="Batch"/>
                     </Column>
@@ -51,12 +51,12 @@
                     <Column importance="Low" popinDisplay="Inline" width="5rem">
                         <Text text="UOM"/>
                     </Column>
-                    <Column importance="Medium" popinDisplay="Inline">
+                    <!-- <Column importance="Medium" popinDisplay="Inline">
                         <Text text="Inventory Page"/>
-                    </Column>
-                    <Column importance="Medium" popinDisplay="Block">
+                    </Column> -->
+                    <!-- <Column importance="Medium" popinDisplay="Block">
                         <Text text="GR Date"/>
-                    </Column>
+                    </Column> -->
                     <Column importance="High" width="4rem">
                         <Text text="Delete"/>
                     </Column>
@@ -65,25 +65,28 @@
                 <items>
                     <ColumnListItem>
                         <cells>
-                            <Input enabled="false" value="{entryModel>MATNR}" />
-                            <Input enabled="false" value="{entryModel>WERKS}" />
-                            <Input enabled="false" value="{entryModel>LGORT}" />
+                            <Input enabled="true" value="{entryModel>Matnr}" maxLength="18"/>
+                            <Input enabled="true" value="{entryModel>Werks}" maxLength="4"/>
+                            <!-- <Input enabled="true" value="{entryModel>LGORT}" maxLength="4"/> -->
 
-                            <Input value="{entryModel>Charg}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBatch" valueHelpOnly="true" submit=".onSubmitBatch"/>
+                            <!-- <Input value="{entryModel>Batch}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBatch" valueHelpOnly="true" submit=".onSubmitBatch"/> -->
+                            <!-- <Input value="{entryModel>Batch}" submit=".onSubmitBatch" maxLength="10"/> -->
+                            <Input value="{entryModel>Batch}" maxLength="10"/>
 
-                            <Input value="{entryModel>LGPLA}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBin" valueHelpOnly="true" submit=".onSubmitBin"/>
+                            <!-- <Input value="{entryModel>Lgpla}" showValueHelp="true" valueHelpRequest=".onValueHelpRequestedBin" valueHelpOnly="true" submit=".onSubmitBin"/> -->
+                            <Input enabled="false" value="{entryModel>Lgpla}" maxLength="10"/>
 
-                            <Input enabled="false" value="{entryModel>LGTYP}" />
+                            <Input enabled="true" value="{entryModel>Lgtyp}" maxLength="3"/>
 
-                            <!-- <Input id="inputCreateLineItemQuantity" value="{ path: 'entryModel>MENGE', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 999999 } }" required="true" liveChange=".validateQty" /> -->
-                            <!-- <Input id="inputCreateLineItemQuantity" value="{path: 'entryModel>MENGE', formatter: '.formatter.validateInteger'}" valueState="{path: 'entryModel>MENGE', formatter: '.formatter.valueStateInteger'}" required="true" liveChange=".validateQty" /> -->
-                            <Input id="inputCreateLineItemQuantity" value="{entryModel>MENGE}" required="true" liveChange=".validateQty" />
+                            <!-- <Input id="inputCreateLineItemQuantity" value="{ path: 'entryModel>CountedQty', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 999999 } }" required="true" liveChange=".validateQty" /> -->
+                            <!-- <Input id="inputCreateLineItemQuantity" value="{path: 'entryModel>CountedQty', formatter: '.formatter.validateInteger'}" valueState="{path: 'entryModel>CountedQty', formatter: '.formatter.valueStateInteger'}" required="true" liveChange=".validateQty" /> -->
+                            <Input id="inputCreateLineItemQuantity" value="{entryModel>CountedQty}" required="true" liveChange=".validateQty" maxLength="14"/>
 
-                            <Input enabled="false" value="{entryModel>Meins}" />
+                            <Input enabled="true" value="{entryModel>Meins}" maxLength="3"/>
 
-                            <Input id="inputCreateLineItemInvPage" value="{ path: 'entryModel>ISEIT', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 99999 } }" required="true" />
+                            <!-- <Input id="inputCreateLineItemInvPage" value="{ path: 'entryModel>ISEIT', type: 'sap.ui.model.type.Number', constraints: { minimum: 0, maximum: 99999 } }" required="true" /> -->
 
-                            <DatePicker id="datePickerItemDate" required="true" change="onItemDateChange" placeholder=" " value="{ path: 'entryModel>WDATU', type: 'sap.ui.model.odata.type.DateTime', formatOptions: { pattern: 'dd.MM.yyyy', UTC: true } }" />
+                            <!-- <DatePicker id="datePickerItemDate" required="true" change="onItemDateChange" placeholder=" " value="{ path: 'entryModel>GrDate', type: 'sap.ui.model.odata.type.Date', formatOptions: { pattern: 'dd.MM.yyyy', UTC: true } }" valueFormat="yyyy-MM-dd" /> -->
 
                             <Button icon="sap-icon://delete" type="Reject" press=".onDeleteRow"/>
                         </cells>

@@ -53,10 +53,10 @@ sap.ui.define([], function () {
 
             const counted = items.filter(function (i) {
                 return i &&
-                    i.MENGE !== undefined &&
-                    i.MENGE !== null &&
-                    i.MENGE !== "" &&
-                    !isNaN(i.MENGE);
+                    i.CountedQty !== undefined &&
+                    i.CountedQty !== null &&
+                    i.CountedQty !== "" &&
+                    !isNaN(i.CountedQty);
             }).length;
 
             return counted + " / " + total;
