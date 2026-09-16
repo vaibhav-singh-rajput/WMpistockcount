@@ -17,7 +17,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/V3/OData/OData.svc/",
+        "uri": "/sap/opu/odata/sap/ZLEX_PI_COUNT_SRV/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -79,7 +79,9 @@
       "": {
         "dataSource": "mainService",
         "preload": true,
-        "settings": {}
+        "settings": {
+          "useBatch": false
+        }
       },
       "appModel": {
         "type": "sap.ui.model.json.JSONModel"
@@ -114,7 +116,7 @@
         },
         {
           "name": "DocumentDetail",
-          "pattern": "documentDetail/{docID}",
+          "pattern": "documentDetail",
           "target": [
             "DocumentDetail"
           ]
